@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- a11y: skip link, named landmarks, focus styles, contrast, reduced-motion -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -145,10 +146,18 @@
     .section-body p + p {
       margin-top: 18px;
     }
+    .section-body a {
+      color: rgb(var(--brand));
+      text-decoration: underline;
+    }
+    .section-body a:hover {
+      color: rgb(var(--purple-deep));
+    }
 
     /* ── Video sections ── */
-    .section-before { background: white; }
-    .section-after  { background: white; }
+    .section-before  { background: white; }
+    .section-after   { background: white; }
+    .section-result  { background: rgb(var(--gray-1)); }
 
     .video-card {
       margin-top: 32px;
@@ -201,7 +210,8 @@
 
     .video-card-caption {
       font-size: 13px;
-      color: rgb(var(--gray-8));
+      /* a11y: swapped --gray-8 (#6e7780, ~3.86:1) for --carbon-7 (#6a6a6a, ~5.0:1) to meet 4.5:1 AA */
+      color: rgb(var(--carbon-7));
       margin-left: auto;
     }
 
@@ -267,6 +277,61 @@
       text-decoration: underline;
     }
 
+    /* ── Focus styles ── */
+    /* Global baseline: brand purple on light backgrounds meets 3:1 against white/gray */
+    :focus-visible {
+      outline: 2px solid rgb(var(--brand));
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+    /* Password gate sits on a dark gradient — use white ring instead */
+    #pw-gate :focus-visible {
+      outline: 2px solid #ffffff;
+      outline-offset: 2px;
+    }
+
+    /* ── Visually hidden (screen-reader only) ── */
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* ── Skip link ── */
+    .skip-link {
+      position: absolute;
+      top: -60px;
+      left: 0;
+      background: white;
+      color: rgb(var(--brand));
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: underline;
+      z-index: 10000;
+      transition: top 0.2s;
+    }
+    .skip-link:focus {
+      top: 0;
+    }
+
+    /* ── Reduced motion ── */
+    /* a11y: kill-switch disables all transitions/animations for prefers-reduced-motion users */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
     /* ── Divider ── */
     .divider {
       height: 1px;
@@ -300,6 +365,8 @@
 </head>
 <body>
 
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
   <!-- ── Password gate ───────────────────────────────────────── -->
   <div id="pw-gate" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(155deg,#0e001f 0%,#2d0060 40%,#7d2eff 100%);display:flex;align-items:center;justify-content:center;font-family:'Yahoo Product Sans VF',sans-serif;">
     <div style="text-align:center;padding:40px;">
@@ -329,9 +396,14 @@
       if (val === 'yahoo@ads') {
         sessionStorage.setItem('pw-ok', '1');
         var gate = document.getElementById('pw-gate');
-        gate.style.transition = 'opacity 0.4s';
-        gate.style.opacity = '0';
-        setTimeout(function(){ gate.style.display = 'none'; }, 400);
+        /* a11y: skip fade for users who prefer reduced motion */
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          gate.style.display = 'none';
+        } else {
+          gate.style.transition = 'opacity 0.4s';
+          gate.style.opacity = '0';
+          setTimeout(function(){ gate.style.display = 'none'; }, 400);
+        }
       } else {
         document.getElementById('pw-error').textContent = 'Incorrect password. Try again.';
         document.getElementById('pw-input').value = '';
@@ -340,17 +412,24 @@
     }
   </script>
 
+  <main id="main-content" tabindex="-1">
+
+  <!-- ── Page header ────────────────────────────────────────── -->
+  <header style="background: #0e001f; text-align: center; padding: 14px 24px; font-family: 'Yahoo Product Sans VF', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #E1D9FF;">
+    Inclusive Ads &nbsp;·&nbsp; Case Study &nbsp;·&nbsp; 2026
+  </header>
+
   <!-- ── 1. Hero: The Why ─────────────────────────────────────── -->
-  <section class="hero">
-    <h1 class="hero-title">Ads.<br>They're everywhere.</h1>
+  <section class="hero" aria-labelledby="hero-heading">
+    <h1 id="hero-heading" class="hero-title">Ads.<br>They're everywhere.</h1>
     <p class="hero-subtitle">And everyone deserves to experience them...(if they want).</p>
   </section>
 
   <!-- ── 2. Context / Pivot text ────────────────────────────── -->
-  <section class="section-context">
+  <section class="section-context" aria-labelledby="reality-heading">
     <div class="section-inner">
       <p class="section-label">The reality</p>
-      <h2 class="section-heading">The world runs on ads—but accessibility is often ignored.</h2>
+      <h2 id="reality-heading" class="section-heading">The world runs on ads—but accessibility is often ignored.</h2>
       <div class="section-body">
         <p>
           Companies rely on people to click through and purchase from ads. And the people
@@ -366,10 +445,10 @@
   <div class="divider"></div>
 
   <!-- ── Impact ─────────────────────────────────────────────── -->
-  <section class="section-work">
+  <section class="section-work" aria-labelledby="impact-heading">
     <div class="section-inner">
       <p class="section-label">The impact</p>
-      <h2 class="section-heading" style="color: rgb(var(--purple-deep));">Spending power of people with disabilities.</h2>
+      <h2 id="impact-heading" class="section-heading" style="color: rgb(var(--purple-deep));">Spending power of people with disabilities.</h2>
       <div class="section-body">
         <p>Disposable income of people with disabilities accounts for about $2.6 trillion. The disability market stretches beyond disabled people and includes friends and family—making the grand total global disability market worth about $18.3 trillion.</p>
       </div>
@@ -380,10 +459,10 @@
   <div class="divider"></div>
 
   <!-- ── 3. Before video ─────────────────────────────────────── -->
-  <section class="section-before">
+  <section class="section-before" aria-labelledby="before-heading">
     <div class="section-inner">
       <p class="section-label">The before</p>
-      <h2 class="section-heading">Is there an ad here?</h2>
+      <h2 id="before-heading" class="section-heading">Is there an ad here?</h2>
       <div class="video-card">
         <div class="video-card-header">
           <span class="video-badge badge-before">Before</span>
@@ -404,15 +483,14 @@
   <div class="divider"></div>
 
   <!-- ── 4. The work: Figma screenshot ──────────────────────── -->
-  <section class="section-work">
+  <section class="section-work" aria-labelledby="work-heading">
     <div class="section-inner">
       <p class="section-label">The work</p>
-      <h2 class="section-heading">Accessibility research and specifications.</h2>
+      <h2 id="work-heading" class="section-heading">Accessibility research and specifications.</h2>
       <div class="section-body">
-        <p>We conducted research studies to understand barriers to online advertisements. We learned about users' experiences and preferences when navigating Yahoo sites and apps.</p>
+        <p>We conducted research studies to understand barriers to online advertisements. We learned about users' experiences and preferences when navigating Yahoo sites and apps. Overall findings indicated online ads are largely inaccessible and inconsistently implemented for screen reader users. While isolated examples of accessible ads exist, most ads lack proper accessibility. But, we can change that. There are some practical things we can all do right now.</p>
       </div>
       <div class="section-body">
-        <p>Overall findings indicated online ads are largely inaccessible and inconsistently implemented for screen reader users. While isolated examples of accessible ads exist, most ads lack proper accessibility. But, we can change that. There are some practical things we can all do right now.</p>
       </div>
       <div class="screenshot-card" style="margin-top: 28px; border: none; box-shadow: 0 2px 6px rgba(0,0,0,0.06), 0 0 0 1px rgb(224, 228, 233); background: white;">
         <div style="padding: 52px 40px 48px; background: white; font-family: 'Yahoo Product Sans VF', sans-serif;">
@@ -429,7 +507,7 @@
           </div>
         </div>
         <div class="screenshot-footer" style="justify-content: flex-end; gap: 20px; background: rgb(245, 248, 250); border-top: 1px solid rgb(224, 228, 233);">
-          <a href="https://docs.google.com/presentation/d/e/2PACX-1vSD7XWbW2VTOr_r6HTcMa6uqGK_zJjloySTa_y61dBQw8wfRvPgqKCmL5vAUtH7FR_0iFnxI_Tmmtt5/pub?start=false&loop=false&delayms=10000" target="_blank" rel="noopener noreferrer">View full presentation ↗</a>
+          <a href="https://docs.google.com/presentation/d/e/2PACX-1vSD7XWbW2VTOr_r6HTcMa6uqGK_zJjloySTa_y61dBQw8wfRvPgqKCmL5vAUtH7FR_0iFnxI_Tmmtt5/pub?start=false&loop=false&delayms=10000" target="_blank" rel="noopener noreferrer">View full presentation <span aria-hidden="true">↗</span><span class="visually-hidden">, opens in new tab</span></a>
         </div>
       </div>
       <p class="section-body" style="margin-top: 28px;">Mail native ads were annotated for focus order, disclosure, and screen reader behavior — covering the ad label, headline, subheadline, and CTA.</p>
@@ -439,8 +517,8 @@
           alt="Figma file showing Yahoo Mail iOS pencil ad accessibility specs: focus order annotations, disclosure sequencing, and screen reader behavior for Native (Taboola) ad format"
         >
         <div class="screenshot-footer" style="justify-content: flex-end; gap: 20px; background: rgb(245, 248, 250); border-top: 1px solid rgb(224, 228, 233);">
-          <a href="https://www.figma.com/design/O6U2jsM8vCM8dZCqhMjKOP/Mail-Ads-Library-and-Specifications?node-id=62-197401&t=DbctloD4p3gm0rXS-4" target="_blank" rel="noopener noreferrer">Show in Figma &#8599;</a>
-          <a href="https://pencil-ads-deploy.vercel.app/" target="_blank" rel="noopener noreferrer">Check out the prototype &#8599;</a>
+          <a href="https://www.figma.com/design/O6U2jsM8vCM8dZCqhMjKOP/Mail-Ads-Library-and-Specifications?node-id=62-197401&t=DbctloD4p3gm0rXS-4" target="_blank" rel="noopener noreferrer">Show in Figma <span aria-hidden="true">↗</span><span class="visually-hidden">, opens in new tab</span></a>
+          <a href="https://pencil-ads-deploy.vercel.app/" target="_blank" rel="noopener noreferrer">Check out the prototype <span aria-hidden="true">↗</span><span class="visually-hidden">, opens in new tab</span></a>
         </div>
       </div>
     </div>
@@ -449,10 +527,10 @@
   <div class="divider"></div>
 
   <!-- ── 5. After video ─────────────────────────────────────── -->
-  <section class="section-after">
+  <section class="section-after" aria-labelledby="after-heading">
     <div class="section-inner">
       <p class="section-label">The after</p>
-      <h2 class="section-heading">The first reaction.</h2>
+      <h2 id="after-heading" class="section-heading">The first reaction.</h2>
       <div class="video-card">
         <div class="video-card-header">
           <span class="video-badge badge-after">After</span>
@@ -469,6 +547,35 @@
       </div>
     </div>
   </section>
+
+  <div class="divider"></div>
+
+  <section class="section-result" aria-labelledby="result-heading">
+    <div class="section-inner">
+      <p class="section-label">The result</p>
+      <h2 id="result-heading" class="section-heading">19 points higher.</h2>
+      <div class="section-body">
+        <p>We partnered with Fable to understand and explore Mail mobile pencil ads on iOS and Android. We conducted two user studies. Both had users find a specific email in their inbox, navigating past an ad along the way.</p>
+        <div style="margin-top: 28px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px 40px;">
+          <div>
+            <p style="font-size: 14px; font-weight: 700; color: rgb(var(--carbon-13)); margin-bottom: 10px;">2025 study</p>
+            <ul style="padding-left: 20px; margin: 0;">
+              <li>The mail experience was evaluated against a larger exploration of ads across Yahoo.</li>
+            </ul>
+          </div>
+          <div>
+            <p style="font-size: 14px; font-weight: 700; color: rgb(var(--carbon-13)); margin-bottom: 10px;">2026 study</p>
+            <ul style="padding-left: 20px; margin: 0;">
+              <li>The study explored design updates and previous user challenges from the research.</li>
+            </ul>
+          </div>
+        </div>
+        <p style="margin-top: 28px;">All users completed the <a href="https://makeitfable.com/accessible-usability-scale/" target="_blank" rel="noopener noreferrer">Accessible Usability Scale<span aria-hidden="true"> ↗</span><span class="visually-hidden">, opens in new tab</span></a> to generate an AUS score for the experience. While the 2025 study's AUS scores are a culmination of the review of multiple ad types, it still reflects a sentiment of ad design at the time. Compared to the previous study, 2026 participants had an AUS score average that was 19 points higher than the 2025 average. This is in part due to appreciated programmatic changes involving the grouping and reading order of content in ads.</p>
+      </div>
+    </div>
+  </section>
+
+  </main>
 
   <!-- ── Close ──────────────────────────────────────────────── -->
   <footer style="text-align: center; padding: 24px; font-family: 'Yahoo Product Sans VF', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #7d2eff;">
